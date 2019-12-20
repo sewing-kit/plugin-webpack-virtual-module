@@ -7,12 +7,21 @@ export interface Options {
   asEntry?: boolean;
 }
 
+export interface VirtualModuleGetterOptions {
+  readonly project:
+    | import('@sewing-kit/model').WebApp
+    | import('@sewing-kit/model').Service;
+  readonly api: import('@sewing-kit/plugins').PluginApi;
+}
+
 const PLUGIN = 'WebpackVirtualModules';
 
 export function useVirtualModules(
   moduleGetter:
     | VirtualModules
-    | (() => VirtualModules | Promise<VirtualModules>),
+    | ((
+        options: VirtualModuleGetterOptions,
+      ) => VirtualModules | Promise<VirtualModules>),
   {asEntry = false}: Options = {},
 ) {
   return createProjectPlugin({
@@ -47,7 +56,7 @@ export function useVirtualModules(
 
         const rawVirtualModules =
           typeof moduleGetter === 'function'
-            ? await moduleGetter()
+            ? await moduleGetter({project, api})
             : moduleGetter;
         const virtualModules =
           typeof rawVirtualModules === 'string'
