@@ -4,6 +4,8 @@ import {} from '@sewing-kit/plugin-webpack';
 export type VirtualModules = string | {[key: string]: string};
 
 export interface Options {
+  dev?: boolean;
+  build?: boolean;
   asEntry?: boolean;
 }
 
@@ -22,20 +24,28 @@ export function useVirtualModules(
     | ((
         options: VirtualModuleGetterOptions,
       ) => VirtualModules | Promise<VirtualModules>),
-  {asEntry = false}: Options = {},
+  {
+    asEntry = false,
+    build: useInBuild = true,
+    dev: useInDev = true,
+  }: Options = {},
 ) {
   return createProjectPlugin({
     id: PLUGIN,
     run({build, dev}, api) {
-      build.tap(PLUGIN, ({hooks}) => {
-        hooks.service.tapPromise(PLUGIN, configure);
-        hooks.webApp.tapPromise(PLUGIN, configure);
-      });
+      if (useInBuild) {
+        build.tap(PLUGIN, ({hooks}) => {
+          hooks.service.tapPromise(PLUGIN, configure);
+          hooks.webApp.tapPromise(PLUGIN, configure);
+        });
+      }
 
-      dev.tap(PLUGIN, ({hooks}) => {
-        hooks.service.tapPromise(PLUGIN, configure);
-        hooks.webApp.tapPromise(PLUGIN, configure);
-      });
+      if (useInDev) {
+        dev.tap(PLUGIN, ({hooks}) => {
+          hooks.service.tapPromise(PLUGIN, configure);
+          hooks.webApp.tapPromise(PLUGIN, configure);
+        });
+      }
 
       async function configure(
         details:
