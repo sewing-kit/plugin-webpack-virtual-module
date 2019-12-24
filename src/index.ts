@@ -1,4 +1,10 @@
-import {createProjectPlugin, WebApp, Service, Task} from '@sewing-kit/plugins';
+import {
+  createProjectPlugin,
+  WebApp,
+  Service,
+  Task,
+  ProjectPluginContext,
+} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
 export type VirtualModules = string | {[key: string]: string};
@@ -8,16 +14,15 @@ export interface Options {
   include?: (Task.Dev | Task.Build)[];
 }
 
-export interface VirtualModuleGetterOptions {
-  readonly project:
-    | import('@sewing-kit/model').WebApp
-    | import('@sewing-kit/model').Service;
-  readonly api: import('@sewing-kit/plugins').PluginApi;
-}
+export interface VirtualModuleGetterOptions<
+  Type extends WebApp | Service = WebApp | Service
+> extends Pick<ProjectPluginContext<Type>, 'project' | 'api'> {}
 
 const PLUGIN = 'WebpackVirtualModules';
 
-export function virtualModules(
+export function virtualModules<
+  Type extends WebApp | Service = WebApp | Service
+>(
   moduleGetter:
     | VirtualModules
     | ((
@@ -25,7 +30,7 @@ export function virtualModules(
       ) => VirtualModules | Promise<VirtualModules>),
   {asEntry = false, include = [Task.Build, Task.Dev]}: Options = {},
 ) {
-  return createProjectPlugin<WebApp | Service>(
+  return createProjectPlugin<Type>(
     PLUGIN,
     ({api, project, tasks: {build, dev}}) => {
       if (include.includes(Task.Build)) {
