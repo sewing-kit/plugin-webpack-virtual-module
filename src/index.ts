@@ -17,7 +17,7 @@ export interface VirtualModuleGetterOptions {
 
 const PLUGIN = 'WebpackVirtualModules';
 
-export function useVirtualModules(
+export function virtualModules(
   moduleGetter:
     | VirtualModules
     | ((
