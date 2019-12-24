@@ -1,12 +1,11 @@
-import {createProjectPlugin} from '@sewing-kit/plugins';
+import {createProjectPlugin, WebApp, Service, Task} from '@sewing-kit/plugins';
 import {} from '@sewing-kit/plugin-webpack';
 
 export type VirtualModules = string | {[key: string]: string};
 
 export interface Options {
-  dev?: boolean;
-  build?: boolean;
   asEntry?: boolean;
+  include?: (Task.Dev | Task.Build)[];
 }
 
 export interface VirtualModuleGetterOptions {
@@ -24,46 +23,31 @@ export function useVirtualModules(
     | ((
         options: VirtualModuleGetterOptions,
       ) => VirtualModules | Promise<VirtualModules>),
-  {
-    asEntry = false,
-    build: useInBuild = true,
-    dev: useInDev = true,
-  }: Options = {},
+  {asEntry = false, include = [Task.Build, Task.Dev]}: Options = {},
 ) {
-  return createProjectPlugin({
-    id: PLUGIN,
-    run({build, dev}, api) {
-      if (useInBuild) {
-        build.tap(PLUGIN, ({hooks}) => {
-          hooks.service.tapPromise(PLUGIN, configure);
-          hooks.webApp.tapPromise(PLUGIN, configure);
+  return createProjectPlugin<WebApp | Service>(
+    PLUGIN,
+    ({api, project, tasks: {build, dev}}) => {
+      if (include.includes(Task.Build)) {
+        build.hook(({hooks}) => {
+          hooks.configure.hook(configure);
         });
       }
 
-      if (useInDev) {
-        dev.tap(PLUGIN, ({hooks}) => {
-          hooks.service.tapPromise(PLUGIN, configure);
-          hooks.webApp.tapPromise(PLUGIN, configure);
+      if (include.includes(Task.Dev)) {
+        dev.hook(({hooks}) => {
+          hooks.configure.hook(configure);
         });
       }
 
       async function configure(
-        details:
-          | {
-              service: import('@sewing-kit/model').Service;
-              hooks:
-                | import('@sewing-kit/hooks').BuildServiceHooks
-                | import('@sewing-kit/hooks').DevServiceHooks;
-            }
-          | {
-              webApp: import('@sewing-kit/model').WebApp;
-              hooks:
-                | import('@sewing-kit/hooks').BuildWebAppHooks
-                | import('@sewing-kit/hooks').DevWebAppHooks;
-            },
+        configure: Partial<
+          import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
+            import('@sewing-kit/hooks').DevServiceConfigurationHooks &
+            import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
+            import('@sewing-kit/hooks').BuildServiceConfigurationHooks
+        >,
       ) {
-        const project = 'service' in details ? details.service : details.webApp;
-
         const rawVirtualModules =
           typeof moduleGetter === 'function'
             ? await moduleGetter({project, api})
@@ -78,22 +62,18 @@ export function useVirtualModules(
               }
             : rawVirtualModules;
 
-        details.hooks.configure.tap(PLUGIN, (configure) => {
-          configure.webpackPlugins?.tapPromise(PLUGIN, async (plugins) => [
-            ...plugins,
-            // eslint-disable-next-line babel/new-cap
-            new (await import('webpack-virtual-modules')).default(
-              virtualModules,
-            ),
-          ]);
+        configure.webpackPlugins?.hook(async (plugins) => [
+          ...plugins,
+          // eslint-disable-next-line babel/new-cap
+          new (await import('webpack-virtual-modules')).default(virtualModules),
+        ]);
 
-          if (asEntry) {
-            configure.webpackEntries?.tap(PLUGIN, () => [
-              Object.keys(virtualModules)[0],
-            ]);
-          }
-        });
+        if (asEntry) {
+          configure.webpackEntries?.hook(() => [
+            Object.keys(virtualModules)[0],
+          ]);
+        }
       }
     },
-  });
+  );
 }
