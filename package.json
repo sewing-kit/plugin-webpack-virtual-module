@@ -1,6 +1,6 @@
 {
   "name": "sewing-kit-plugin-webpack-virtual-modules",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A plugin for sewing-kit that ...",
   "main": "index.js",
   "repository": "https://github.com/sewing-kit/plugin-knex.git",
@@ -14,7 +14,7 @@
     "prepublish": "sk build"
   },
   "devDependencies": {
-    "@quilted/sewing-kit-plugins": "^0.0.21",
+    "@quilted/sewing-kit-plugins": "^0.0.22",
     "@sewing-kit/cli": "^0.0.33",
     "@sewing-kit/eslint-plugin": "^0.0.8"
   },
