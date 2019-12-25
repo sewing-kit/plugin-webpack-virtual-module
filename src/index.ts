@@ -26,7 +26,7 @@ export function virtualModules<
   moduleGetter:
     | VirtualModules
     | ((
-        options: VirtualModuleGetterOptions,
+        options: VirtualModuleGetterOptions<Type>,
       ) => VirtualModules | Promise<VirtualModules>),
   {asEntry = false, include = [Task.Build, Task.Dev]}: Options = {},
 ) {
