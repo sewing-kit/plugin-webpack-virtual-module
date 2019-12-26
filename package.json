@@ -14,17 +14,17 @@
     "prepublish": "sk build"
   },
   "devDependencies": {
-    "@quilted/sewing-kit-plugins": "^0.0.22",
-    "@sewing-kit/cli": "^0.0.33",
+    "@quilted/sewing-kit-plugins": "^0.0.23",
+    "@sewing-kit/cli": "^0.0.34",
     "@sewing-kit/eslint-plugin": "^0.0.8"
   },
   "dependencies": {
-    "@sewing-kit/plugins": "^0.0.12",
+    "@sewing-kit/plugins": "^0.0.13",
     "@types/webpack-virtual-modules": "^0.1.0",
     "webpack-virtual-modules": "^0.2.1"
   },
   "optionalDependencies": {
-    "@sewing-kit/plugin-webpack": "^0.0.27"
+    "@sewing-kit/plugin-webpack": "^0.0.28"
   },
   "files": [
     "src",
