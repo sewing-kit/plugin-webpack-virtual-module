@@ -46,12 +46,11 @@ export function virtualModules<
       }
 
       async function configure(
-        configure: Partial<
-          import('@sewing-kit/hooks').DevWebAppConfigurationHooks &
-            import('@sewing-kit/hooks').DevServiceConfigurationHooks &
-            import('@sewing-kit/hooks').BuildWebAppConfigurationHooks &
-            import('@sewing-kit/hooks').BuildServiceConfigurationHooks
-        >,
+        configure:
+          | import('@sewing-kit/hooks').DevWebAppConfigurationHooks
+          | import('@sewing-kit/hooks').DevServiceConfigurationHooks
+          | import('@sewing-kit/hooks').BuildWebAppConfigurationHooks
+          | import('@sewing-kit/hooks').BuildServiceConfigurationHooks,
       ) {
         const rawVirtualModules =
           typeof moduleGetter === 'function'
@@ -67,11 +66,13 @@ export function virtualModules<
               }
             : rawVirtualModules;
 
-        configure.webpackPlugins?.hook(async (plugins) => [
-          ...plugins,
-          // eslint-disable-next-line babel/new-cap
-          new (await import('webpack-virtual-modules')).default(virtualModules),
-        ]);
+        configure.webpackPlugins?.hook(async (plugins) => {
+          const {default: WebpackVirtualModules} = await import(
+            'webpack-virtual-modules'
+          );
+
+          return [...plugins, new WebpackVirtualModules(virtualModules)];
+        });
 
         if (asEntry) {
           configure.webpackEntries?.hook(() => [
